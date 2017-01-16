@@ -12,9 +12,11 @@
     android:background="@drawable/music_background">
   <include layout="@layout/handle_button_layout"></include>
  <ListView
+     android:id="@+id/music_list"
      android:layout_width="match_parent"
      android:layout_height="wrap_content"
-     android:layout_below="@id/handle_button_layout"></ListView>
+     android:layout_below="@id/handle_button_layout"
+     android:dividerHeight="@dimen/list_music_devider"></ListView>
     <RelativeLayout
         android:id="@+id/single_song_layout"
         android:layout_width="match_parent"

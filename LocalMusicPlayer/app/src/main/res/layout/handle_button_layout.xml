@@ -6,34 +6,34 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical">
-        <ImageView
+        <Button
             android:id="@+id/previous_music"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:src="@drawable/previous_music"/>
-        <ImageView
+            android:background="@drawable/previous_music"/>
+        <Button
             android:id="@+id/repeat_music"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:src="@drawable/repeat_music"/>
-        <ImageView
+            android:background="@drawable/repeat_none"/>
+        <Button
             android:id="@+id/play_music"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:src="@drawable/play_music"/>
-        <ImageView
+            android:background="@drawable/stop_music"/>
+        <Button
             android:id="@+id/rank_music"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:src="@drawable/rank_music"/>
-        <ImageView
+            android:background="@drawable/rank_music_none"/>
+        <Button
             android:id="@+id/next_music"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:src="@drawable/next_music"/>
+            android:background="@drawable/next_music"/>
     </LinearLayout>

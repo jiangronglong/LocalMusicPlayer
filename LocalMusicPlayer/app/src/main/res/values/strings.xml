@@ -5,4 +5,5 @@
     <string name="home_text">首页</string>
     <string name="song_list_text">歌单</string>
     <string name="search_text">搜索</string>
+    <string name="music_list_artist">小江</string>
 </resources>

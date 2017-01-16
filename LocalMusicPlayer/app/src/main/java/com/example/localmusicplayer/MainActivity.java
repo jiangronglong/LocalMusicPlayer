@@ -1,9 +1,11 @@
 package com.example.localmusicplayer;
 
+import android.app.Activity;
+import android.app.LocalActivityManager;
+import android.content.Intent;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
 import android.widget.ImageView;
@@ -18,6 +20,11 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
     private List<View> views = new ArrayList<>();
     private ViewPager viewPager;
+
+    private LocalActivityManager manager;
+    private Intent intentHome,intentList,intentSearch;
+
+
     //底端菜单栏LinearLayout
     private LinearLayout home_linearlayout;
     private LinearLayout song_list_linearlayout;
@@ -43,18 +50,37 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
         //初始化各个控件
         InitView();
-        InitData();
+        InitData(savedInstanceState);
     }
-    private void InitData(){
-        LayoutInflater minflate=LayoutInflater.from(this);
-        View mainPage=minflate.inflate(R.layout.home_layout,null);
-        View listPage=minflate.inflate(R.layout.list_layout,null);
-        View searchPage=minflate.inflate(R.layout.search_layout,null);
-        views.add(mainPage);
+    private void InitData(Bundle savedInstanceState){
+        manager = new LocalActivityManager((Activity)this, true);
+        manager.dispatchCreate(savedInstanceState);
+
+
+        intentHome = new Intent(MainActivity.this, HomeActivity.class);
+        View homePage = manager.startActivity("R.layout.home_layout", intentHome).getDecorView();
+        intentList = new Intent(MainActivity.this, ListActivity.class);
+        View listPage = manager.startActivity("R.layout.list_layout", intentList).getDecorView();
+        intentSearch = new Intent(MainActivity.this, SearchActivity.class);
+        View searchPage = manager.startActivity("R.layout.search_layout", intentSearch).getDecorView();
+
+        views.add(homePage);
         views.add(listPage);
         views.add(searchPage);
         MyPagerAdapter adapter=new MyPagerAdapter(views);
-        viewPager.setAdapter(adapter);
+         viewPager.setAdapter(adapter);
+
+         //之前修改的
+
+        //LayoutInflater minflate=LayoutInflater.from(this);
+       // View mainPage=minflate.inflate(R.layout.home_layout,null);
+       // View listPage=minflate.inflate(R.layout.list_layout,null);
+       // View searchPage=minflate.inflate(R.layout.search_layout,null);
+       // views.add(mainPage);
+        //views.add(listPage);
+       // views.add(searchPage);
+       // MyPagerAdapter adapter=new MyPagerAdapter(views);
+       // viewPager.setAdapter(adapter);
     }
     private void InitView(){
         viewPager=(ViewPager)findViewById(R.id.viewpager);

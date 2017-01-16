@@ -10,4 +10,13 @@
     <dimen name="music_during_text_margin_left">8dp</dimen>
     <dimen name="music_during_text_textSize">18sp</dimen>
     <dimen name="main_button_textSize">13sp</dimen>
+
+    <dimen name="list_music_item_image">64dp</dimen>
+    <dimen name="music_list_item_text_textSize">18sp</dimen>
+    <dimen name="music_name_text_margin_right">5dp</dimen>
+    <dimen name="home_music_title_textSize">22sp</dimen>
+    <dimen name="home_music_artist_textSize">18sp</dimen>
+    <dimen name="home_music_artist_layoutTop">2dp</dimen>
+    <dimen name="list_music_devider">1dp</dimen>
+
 </resources>
