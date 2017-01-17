@@ -20,6 +20,12 @@
         <activity android:name=".HomeActivity"></activity>
         <activity android:name=".SearchActivity"></activity>
 
+        <service android:name=".services.MusicService">
+            <intent-filter>
+               <action android:name="com.example.MUSIC_SERVICE"></action>
+            </intent-filter>
+        </service>
+
     </application>
 
 </manifest>

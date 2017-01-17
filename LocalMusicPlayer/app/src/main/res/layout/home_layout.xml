@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/music_background">
@@ -9,13 +9,13 @@
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true">
         <Button
-            android:id="@+id/home_repeat_music"
+            android:id="@id/repeat_music"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/repeat_none"
             android:layout_alignParentLeft="true"/>
         <Button
-            android:id="@+id/home_rank_music"
+            android:id="@id/rank_music"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/rank_none"
@@ -24,7 +24,7 @@
             android:id="@+id/home_music_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignBaseline="@id/home_repeat_music"
+            android:layout_alignBaseline="@id/repeat_music"
             android:layout_centerHorizontal="true"
             android:lines="1"
             android:textSize="@dimen/home_music_title_textSize"
@@ -40,6 +40,78 @@
             android:textSize="@dimen/home_music_artist_textSize"
             android:text="@string/music_list_artist"/>
     </RelativeLayout>
+    <ScrollView
+        android:id="@+id/lyric_scrollview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/headler_layout">
+        <TextView
+            android:id="@+id/lyric_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="@string/lyric_text"/>
+    </ScrollView>
+    <RelativeLayout
+        android:id="@+id/foot_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true">
+        <RelativeLayout
+            android:id="@+id/seekbar_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/player_progresslayout_bg">
+            <SeekBar
+                android:id="@+id/audioTrack"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:background="@drawable/player_progress_bg"
+                android:progressDrawable="@drawable/seekbar_img"
+                android:thumb="@drawable/media_player_progress_button" />
 
+            <TextView
+                android:id="@+id/current_progress"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/audioTrack" />
 
-</LinearLayout>
+            <TextView
+                android:id="@+id/final_progress"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_below="@id/audioTrack" />
+        </RelativeLayout>
+        <RelativeLayout
+            android:id="@+id/foot_layout_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/seekbar_layout">
+            <Button
+                android:id="@id/play_music"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:background="@drawable/stop_music" />
+
+            <Button
+                android:id="@id/next_music"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignBaseline="@+id/play_music"
+                android:layout_toRightOf="@+id/play_music"
+                android:background="@drawable/next_music" />
+
+            <Button
+                android:id="@id/previous_music"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignBaseline="@+id/play_music"
+                android:layout_toLeftOf="@+id/play_music"
+                android:background="@drawable/previous_music" />
+        </RelativeLayout>
+    </RelativeLayout>
+
+</RelativeLayout>

@@ -54,13 +54,5 @@
                 android:textSize="@dimen/music_during_text_textSize"
                 android:text="@string/music_during_text"/>
         </RelativeLayout>
-
-        <ImageView
-            android:id="@+id/back_to_list"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:layout_alignParentRight="true"
-            android:src="@drawable/back_to_list"/>
     </RelativeLayout>
 </RelativeLayout>
