@@ -6,10 +6,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.view.ContextMenu;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
+import android.view.WindowManager;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -19,6 +24,9 @@ import android.widget.Toast;
 import com.example.localmusicplayer.adapter.MusicListAdapter;
 import com.example.localmusicplayer.classes.AppConstant;
 import com.example.localmusicplayer.classes.Mp3Info;
+import com.example.localmusicplayer.utils.ConstantUtils;
+import com.example.localmusicplayer.utils.CustomDialog;
+import com.example.localmusicplayer.utils.GetScreenUtils;
 import com.example.localmusicplayer.utils.MediaUtils;
 import android.widget.AdapterView.OnItemClickListener;
 
@@ -77,6 +85,9 @@ public class ListActivity  extends Activity{
         listAdapter = new MusicListAdapter(this, mp3Infos);
         mMusiclist.setAdapter(listAdapter);
         mMusiclist.setOnItemClickListener(new MusicListItemClickListener());
+
+        mMusiclist.setOnCreateContextMenuListener(new MusicListItemContextListener());
+
         initById();
         setViewOnClickListener();
         repeatStatue = noneRepeat; // 初始状态为无重复播放状态
@@ -116,6 +127,79 @@ public class ListActivity  extends Activity{
         nextBtn.setOnClickListener(listener);
 
     }
+
+
+    public class MusicListItemContextListener implements
+            View.OnCreateContextMenuListener {
+
+        @Override
+        public void onCreateContextMenu(ContextMenu menu, View v,
+                                        ContextMenu.ContextMenuInfo menuInfo) {
+            musicListItemDialog(); // 长按后弹出的对话框
+            final AdapterView.AdapterContextMenuInfo menuInfo2 = (AdapterView.AdapterContextMenuInfo) menuInfo;
+            listPosition = menuInfo2.position; // 点击列表的位置
+        }
+
+    }
+
+
+    /**
+     * 自定义对话框
+     */
+    public void musicListItemDialog() {
+        String[] menuItems = new String[] {  "查看详情" };
+        ListView menuList = new ListView(ListActivity.this);
+        menuList.setCacheColorHint(Color.TRANSPARENT);
+        menuList.setDividerHeight(1);
+        menuList.setAdapter(new ArrayAdapter<String>(ListActivity.this,
+                R.layout.context_dialog_layout, R.id.dialogText, menuItems));
+        menuList.setLayoutParams(new WindowManager.LayoutParams(GetScreenUtils
+                .getScreen(ListActivity.this)[0] / 2, WindowManager.LayoutParams.WRAP_CONTENT));
+
+        final CustomDialog customDialog = new CustomDialog.Builder(
+               ListActivity.this).setTitle(R.string.show)
+                .setView(menuList).create();
+        customDialog.show();
+
+        menuList.setOnItemClickListener(new OnItemClickListener() {
+
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view,
+                                    int position, long id) {
+                customDialog.cancel();
+                customDialog.dismiss();
+                if (position == 0) {
+                    showMusicInfo(listPosition);
+                }
+            }
+
+        });
+    }
+
+    private void showMusicInfo(int position) {
+        Mp3Info mp3Info = mp3Infos.get(position);
+        LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+        View view = inflater.inflate(R.layout.music_info_layout, null);
+        ((TextView) view.findViewById(R.id.tv_song_title)).setText(mp3Info
+                .getTitle());
+        ((TextView) view.findViewById(R.id.tv_song_artist)).setText(mp3Info
+                .getArtist());
+        ((TextView) view.findViewById(R.id.tv_song_album)).setText(mp3Info
+                .getAlbum());
+        ((TextView) view.findViewById(R.id.tv_song_filepath)).setText(mp3Info
+                .getUrl());
+        ((TextView) view.findViewById(R.id.tv_song_duration)).setText(MediaUtils
+                .formatTime(mp3Info.getDuration()));
+        ((TextView) view.findViewById(R.id.tv_song_format)).setText(ConstantUtils
+                .getSuffix(mp3Info.getDisplayName()));
+        ((TextView) view.findViewById(R.id.tv_song_size)).setText(ConstantUtils
+                .formatByteToMB(mp3Info.getSize()) + "MB");
+        new CustomDialog.Builder(ListActivity.this).setTitle("歌曲详细信息:")
+                .setNeutralButton("确定", null).setView(view).create().show();
+    }
+
+
+
 
 
     private class ViewOnClickListener implements View.OnClickListener{
@@ -203,21 +287,34 @@ public class ListActivity  extends Activity{
                     }
                     break;
                 case R.id.next_music:
-                    Mp3Info mp3Info = mp3Infos.get(listPosition);
-                    Intent intent = new Intent(ListActivity.this,HomeActivity.class);
-                    intent.putExtra("title", mp3Info.getTitle());
-                    intent.putExtra("url", mp3Info.getUrl());
-                    intent.putExtra("artist", mp3Info.getArtist());
-                    intent.putExtra("listPosition", listPosition);
-                    intent.putExtra("currentTime", currentTime);
-                    intent.putExtra("duration", durationTime);
-                    intent.putExtra("MSG", AppConstant.PlayerMsg.PLAYING_MSG);
-                    startActivity(intent);
+                    playBtn.setBackgroundResource(R.drawable.play_music);
+                    isFirstTime = false;
+                    isPlaying = true;
+                    isPause = false;
+                    next();
                     break;
 
             }
 
         }
+    }
+
+    public void next() {
+        listPosition=listPosition+1;
+        if(listPosition<= mp3Infos.size() - 1){
+            Mp3Info mp3Info=mp3Infos.get(listPosition);
+            Intent intent = new Intent();
+            intent.setAction("com.example.MUSIC_SERVICE");
+            intent.putExtra("listPosition", listPosition);
+            intent.putExtra("url", mp3Info.getUrl());
+            intent.putExtra("MSG", AppConstant.PlayerMsg.PRIVIOUS_MSG);
+            intent.setPackage("com.example.localmusicplayer");
+            startService(intent);
+        }else {
+            listPosition = mp3Infos.size() - 1;
+            Toast.makeText(ListActivity.this, "无下一首", Toast.LENGTH_SHORT).show();
+        }
+
     }
 
     public void RankMusic(){
