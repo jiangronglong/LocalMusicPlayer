@@ -93,6 +93,20 @@ public class ListActivity  extends Activity{
         repeatStatue = noneRepeat; // 初始状态为无重复播放状态
 
 
+
+       registerReceiver();
+    }
+
+    private class MusicListItemClickListener implements OnItemClickListener {
+        @Override
+        public void onItemClick(AdapterView<?> parent, View view, int position,
+                                long id) {
+            listPosition = position;
+            playMusic(listPosition);
+        }
+
+    }
+    private void registerReceiver(){
         listReceiver = new ListReceiver();
         // 创建IntentFilter
         IntentFilter filter = new IntentFilter();
@@ -104,15 +118,6 @@ public class ListActivity  extends Activity{
         filter.addAction(SHUFFLE_ACTION);
         // 注册BroadcastReceiver
         registerReceiver(listReceiver, filter);
-    }
-
-    private class MusicListItemClickListener implements OnItemClickListener {
-        @Override
-        public void onItemClick(AdapterView<?> parent, View view, int position,
-                                long id) {
-            listPosition = position;
-            playMusic(listPosition);
-        }
 
     }
 
