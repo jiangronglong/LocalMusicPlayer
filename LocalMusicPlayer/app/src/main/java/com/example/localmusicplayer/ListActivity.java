@@ -24,6 +24,14 @@ import android.widget.Toast;
 import com.example.localmusicplayer.adapter.MusicListAdapter;
 import com.example.localmusicplayer.classes.AppConstant;
 import com.example.localmusicplayer.classes.Mp3Info;
+import com.example.localmusicplayer.listPresenter.ClickBtnPresenter;
+import com.example.localmusicplayer.listPresenter.ClickListItemPresenter;
+import com.example.localmusicplayer.listPresenter.LoadingListPresenter;
+import com.example.localmusicplayer.listPresenter.LongClickListItemPresenter;
+import com.example.localmusicplayer.listView.IClickBtnView;
+import com.example.localmusicplayer.listView.IClickListItemView;
+import com.example.localmusicplayer.listView.ILoadingListView;
+import com.example.localmusicplayer.listView.ILongClickListItemView;
 import com.example.localmusicplayer.utils.ConstantUtils;
 import com.example.localmusicplayer.utils.CustomDialog;
 import com.example.localmusicplayer.utils.GetScreenUtils;
@@ -36,7 +44,7 @@ import java.util.List;
  * Created by jiang rong long on 2017/1/16.
  */
 
-public class ListActivity  extends Activity{
+public class ListActivity  extends Activity implements ILoadingListView,ILongClickListItemView,IClickListItemView,IClickBtnView{
     private ListView mMusiclist; // 音乐列表
     private List<Mp3Info> mp3Infos = null;
     MusicListAdapter listAdapter; // 自定义列表适配器
@@ -73,28 +81,146 @@ public class ListActivity  extends Activity{
     public static final String REPEAT_ACTION = "com.example.action.REPEAT_ACTION"; // 音乐重复改变动作
     public static final String SHUFFLE_ACTION = "com.example.action.SHUFFLE_ACTION"; // 音乐随机播放动作
 
-
+    private LoadingListPresenter mLoadingListPresenter=new LoadingListPresenter(this);
+    private LongClickListItemPresenter mlongClickListItemPresenter=new LongClickListItemPresenter(this);
+    private ClickListItemPresenter mclickListItemPresenter=new ClickListItemPresenter(this);
+    private ClickBtnPresenter mclickBtnPresenter=new ClickBtnPresenter(this);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.list_layout);
-        mMusiclist = (ListView) findViewById(R.id.music_list);
-        mp3Infos = MediaUtils.getMp3Infos(ListActivity.this); // 获取歌曲对象集合
-        listAdapter = new MusicListAdapter(this, mp3Infos);
-        mMusiclist.setAdapter(listAdapter);
-        mMusiclist.setOnItemClickListener(new MusicListItemClickListener());
-
-        mMusiclist.setOnCreateContextMenuListener(new MusicListItemContextListener());
-
         initById();
+        mLoadingListPresenter.LoadingList();
+        mclickListItemPresenter.toHomeActivity();
+        mlongClickListItemPresenter.LongClickListItem();
+
         setViewOnClickListener();
         repeatStatue = noneRepeat; // 初始状态为无重复播放状态
 
 
 
        registerReceiver();
+    }
+
+    @Override
+    public List<Mp3Info> getMusicMessage() {
+        return  mp3Infos = MediaUtils.getMp3Infos(ListActivity.this); // 获取歌曲对象集合;
+    }
+
+    @Override
+    public void showListView(List<Mp3Info> mp3Infos) {
+        listAdapter = new MusicListAdapter(ListActivity.this, mp3Infos);
+        mMusiclist.setAdapter(listAdapter);
+    }
+
+    @Override
+    public void showNoMusic() {
+         Toast.makeText(ListActivity.this,"没有歌曲",Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void longClickListItem() {
+        mMusiclist.setOnCreateContextMenuListener(new MusicListItemContextListener());
+
+    }
+
+    @Override
+    public void toHomeActivity() {
+        mMusiclist.setOnItemClickListener(new MusicListItemClickListener());
+    }
+
+    @Override
+    public void failToHomeActivity() {
+        Toast.makeText(ListActivity.this,"播放失败",Toast.LENGTH_SHORT).show();
+
+    }
+
+
+
+    @Override
+    public void toPrevious() {
+        listPosition=listPosition-1;
+        if(listPosition>=0){
+            Mp3Info mp3Info=mp3Infos.get(listPosition);
+            Intent intent = new Intent();
+            intent.setAction("com.example.MUSIC_SERVICE");
+            intent.putExtra("listPosition", listPosition);
+            intent.putExtra("url", mp3Info.getUrl());
+            intent.putExtra("MSG", AppConstant.PlayerMsg.PRIVIOUS_MSG);
+            intent.setPackage("com.example.localmusicplayer");
+            startService(intent);
+        }else {
+            Toast.makeText(ListActivity.this, "无上一首", Toast.LENGTH_SHORT).show();
+        }
+
+    }
+
+    @Override
+    public void toRepeat_one() {
+        Intent intent = new Intent(CTL_ACTION);
+        intent.putExtra("control", 1);
+        sendBroadcast(intent);
+
+    }
+
+    @Override
+    public void toRepeat_all() {
+        Intent intent = new Intent(CTL_ACTION);
+        intent.putExtra("control", 2);
+        sendBroadcast(intent);
+
+    }
+
+    @Override
+    public void toRepeat_none() {
+        Intent intent = new Intent(CTL_ACTION);
+        intent.putExtra("control", 3);
+        sendBroadcast(intent);
+
+    }
+
+    @Override
+    public void toPlay() {
+        playBtn.setBackgroundResource(R.drawable.play_music);
+        Mp3Info mp3Info = mp3Infos.get(listPosition);
+        music_name.setText(mp3Info.getTitle());
+        Intent intent = new Intent();
+        intent.setAction("com.example.MUSIC_SERVICE");
+        intent.putExtra("listPosition", 0);
+        intent.putExtra("url", mp3Info.getUrl());
+        intent.putExtra("MSG", AppConstant.PlayerMsg.PLAY_MSG);
+        intent.setPackage("com.example.localmusicplayer");
+        startService(intent);
+
+    }
+
+    @Override
+    public void toRankMusic() {
+        Intent intent = new Intent(CTL_ACTION);
+        intent.putExtra("control", 4);
+        sendBroadcast(intent);
+
+    }
+
+    @Override
+    public void toNext() {
+        listPosition=listPosition+1;
+        if(listPosition<= mp3Infos.size() - 1){
+            Mp3Info mp3Info=mp3Infos.get(listPosition);
+            Intent intent = new Intent();
+            intent.setAction("com.example.MUSIC_SERVICE");
+            intent.putExtra("listPosition", listPosition);
+            intent.putExtra("url", mp3Info.getUrl());
+            intent.putExtra("MSG", AppConstant.PlayerMsg.PRIVIOUS_MSG);
+            intent.setPackage("com.example.localmusicplayer");
+            startService(intent);
+        }else {
+            listPosition = mp3Infos.size() - 1;
+            Toast.makeText(ListActivity.this, "无下一首", Toast.LENGTH_SHORT).show();
+        }
+
     }
 
     private class MusicListItemClickListener implements OnItemClickListener {
@@ -205,8 +331,6 @@ public class ListActivity  extends Activity{
 
 
 
-
-
     private class ViewOnClickListener implements View.OnClickListener{
         Intent intent=new Intent();
 
@@ -218,19 +342,23 @@ public class ListActivity  extends Activity{
                     isFirstTime=false;
                     isPlaying=true;
                     isPause=false;
-                  previous();
+                  //previous();
+                    mclickBtnPresenter.clickPrevious();
                     break;
                 case R.id.repeat_music:
                     if (repeatStatue == noneRepeat) {
-                        repeat_one();
+                        //repeat_one();
+                        mclickBtnPresenter.clickRepeat_one();
                         rankBtn.setClickable(false);
                         repeatStatue = singleRepeat;
                     } else if (repeatStatue == singleRepeat) {
-                        repeat_all();
+                        //repeat_all();
+                        mclickBtnPresenter.clickRepeat_all();
                         rankBtn.setClickable(false);
                         repeatStatue = allRepeat;
                     } else if (repeatStatue == allRepeat) {
-                        repeat_none();
+                        //repeat_none();
+                        mclickBtnPresenter.clickRepeat_none();
                         rankBtn.setClickable(true);
                         repeatStatue = singleRepeat;
                     }
@@ -252,7 +380,8 @@ public class ListActivity  extends Activity{
                     break;
                 case R.id.play_music:
                     if (isFirstTime) {
-                        play();
+                        //play();
+                        mclickBtnPresenter.clickPlay();
                         isFirstTime = false;
                         isPlaying = true;
                         isPause = false;
@@ -282,7 +411,8 @@ public class ListActivity  extends Activity{
                         rankBtn.setBackgroundResource(R.drawable.rank_music);
                         isNoneRank = false;
                         isRank = true;
-                       RankMusic();
+                       //RankMusic();
+                        mclickBtnPresenter.clickRankMusic();
                         repeatBtn.setClickable(false);
                     } else if (isRank) {
                         rankBtn.setBackgroundResource(R.drawable.rank_music_none);
@@ -296,7 +426,8 @@ public class ListActivity  extends Activity{
                     isFirstTime = false;
                     isPlaying = true;
                     isPause = false;
-                    next();
+                    //next();
+                    mclickBtnPresenter.clickNext();
                     break;
 
             }
@@ -304,7 +435,7 @@ public class ListActivity  extends Activity{
         }
     }
 
-    public void next() {
+   /* public void next() {
         listPosition=listPosition+1;
         if(listPosition<= mp3Infos.size() - 1){
             Mp3Info mp3Info=mp3Infos.get(listPosition);
@@ -321,14 +452,16 @@ public class ListActivity  extends Activity{
         }
 
     }
+    */
 
-    public void RankMusic(){
+  /*  public void RankMusic(){
         Intent intent = new Intent(CTL_ACTION);
         intent.putExtra("control", 4);
         sendBroadcast(intent);
     }
+    */
 
-    public void play() {
+   /* public void play() {
         playBtn.setBackgroundResource(R.drawable.play_music);
         Mp3Info mp3Info = mp3Infos.get(listPosition);
         music_name.setText(mp3Info.getTitle());
@@ -340,13 +473,15 @@ public class ListActivity  extends Activity{
         intent.setPackage("com.example.localmusicplayer");
         startService(intent);
     }
+    */
 
-    public void repeat_one() {
+    /*public void repeat_one() {
         Intent intent = new Intent(CTL_ACTION);
         intent.putExtra("control", 1);
         sendBroadcast(intent);
     }
-    public void repeat_all() {
+    */
+   /* public void repeat_all() {
         Intent intent = new Intent(CTL_ACTION);
         intent.putExtra("control", 2);
         sendBroadcast(intent);
@@ -375,10 +510,11 @@ public class ListActivity  extends Activity{
         }
 
     }
-
+*/
 
 
     private void initById(){
+        mMusiclist = (ListView) findViewById(R.id.music_list);
         previousBtn=(Button)findViewById(R.id.previous_music);
         repeatBtn=(Button)findViewById(R.id.repeat_music);
         playBtn=(Button)findViewById(R.id.play_music);

@@ -14,6 +14,8 @@ import android.widget.Toast;
 
 import com.example.localmusicplayer.classes.AppConstant;
 import com.example.localmusicplayer.classes.Mp3Info;
+import com.example.localmusicplayer.homePresenter.ClickBtnPresenter;
+import com.example.localmusicplayer.homeView.IClickBtnView;
 import com.example.localmusicplayer.services.MusicService;
 import com.example.localmusicplayer.utils.MediaUtils;
 
@@ -23,7 +25,7 @@ import java.util.List;
  * Created by jiang rong long on 2017/1/16.
  */
 
-public class HomeActivity extends Activity{
+public class HomeActivity extends Activity implements IClickBtnView{
 
     private List<Mp3Info> mp3Infos;
     private Button previousBtn;//上一首按钮
@@ -64,6 +66,8 @@ public class HomeActivity extends Activity{
     public static final String REPEAT_ACTION = "com.example.action.REPEAT_ACTION"; // 音乐重复改变动作
     public static final String SHUFFLE_ACTION = "com.example.action.SHUFFLE_ACTION"; // 音乐随机播放动作
 
+    private ClickBtnPresenter clickBtnPresenter=new ClickBtnPresenter(this);
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,6 +81,7 @@ public class HomeActivity extends Activity{
         registerReceiver();
         getDataFromBundle();
         initView();
+        repeatStatue = noneRepeat; // 初始状态为无重复播放状态
 
     }
 
@@ -116,7 +121,8 @@ public class HomeActivity extends Activity{
             sendBroadcast(intent);
         } else if (flag == AppConstant.PlayerMsg.PLAY_MSG) { // 如果是点击列表播放歌曲的话
             playBtn.setBackgroundResource(R.drawable.play_music);
-            play();
+            //play();
+            clickBtnPresenter.clickPlay();
         } else if (flag == AppConstant.PlayerMsg.CONTINUE_MSG) {
             Intent intent = new Intent(HomeActivity.this, MusicService.class);
             playBtn.setBackgroundResource(R.drawable.play_music);
@@ -193,6 +199,89 @@ public class HomeActivity extends Activity{
 
     }
 
+    @Override
+    public void toPrevious() {
+        listPosition=listPosition-1;
+        if(listPosition>=0){
+            Mp3Info mp3Info=mp3Infos.get(listPosition);
+            Intent intent = new Intent();
+            intent.setAction("com.example.MUSIC_SERVICE");
+            intent.putExtra("listPosition", listPosition);
+            intent.putExtra("url", mp3Info.getUrl());
+            intent.putExtra("MSG", AppConstant.PlayerMsg.PRIVIOUS_MSG);
+            intent.setPackage("com.example.localmusicplayer");
+            startService(intent);
+        }else {
+            Toast.makeText(HomeActivity.this, "无上一首", Toast.LENGTH_SHORT).show();
+        }
+
+    }
+
+    @Override
+    public void toRepeat_one() {
+        Intent intent = new Intent(CTL_ACTION);
+        intent.putExtra("control", 1);
+        sendBroadcast(intent);
+    }
+
+    @Override
+    public void toRepeat_all() {
+        Intent intent = new Intent(CTL_ACTION);
+        intent.putExtra("control", 2);
+        sendBroadcast(intent);
+
+    }
+
+    @Override
+    public void toRepeat_none() {
+        Intent intent = new Intent(CTL_ACTION);
+        intent.putExtra("control", 3);
+        sendBroadcast(intent);
+
+    }
+
+    @Override
+    public void toPlay() {
+        playBtn.setBackgroundResource(R.drawable.play_music);
+        Mp3Info mp3Info = mp3Infos.get(listPosition);
+        music_name.setText(mp3Info.getTitle());
+        Intent intent = new Intent();
+        intent.setAction("com.example.MUSIC_SERVICE");
+        intent.putExtra("listPosition", 0);
+        intent.putExtra("url", mp3Info.getUrl());
+        intent.putExtra("MSG", AppConstant.PlayerMsg.PLAY_MSG);
+        intent.setPackage("com.example.localmusicplayer");
+        startService(intent);
+    }
+
+    @Override
+    public void toRankMusic() {
+        Intent intent = new Intent(CTL_ACTION);
+        intent.putExtra("control", 4);
+        sendBroadcast(intent);
+
+    }
+
+    @Override
+    public void toNext() {
+        listPosition=listPosition+1;
+        if(listPosition<= mp3Infos.size() - 1){
+            Mp3Info mp3Info=mp3Infos.get(listPosition);
+            Intent intent = new Intent();
+            intent.setAction("com.example.MUSIC_SERVICE");
+            intent.putExtra("listPosition", listPosition);
+            intent.putExtra("url", mp3Info.getUrl());
+            intent.putExtra("MSG", AppConstant.PlayerMsg.PRIVIOUS_MSG);
+            intent.setPackage("com.example.localmusicplayer");
+            startService(intent);
+        }else {
+            listPosition = mp3Infos.size() - 1;
+            Toast.makeText(HomeActivity.this, "无下一首", Toast.LENGTH_SHORT).show();
+        }
+
+
+    }
+
     private class ViewOnClickListener implements View.OnClickListener{
         Intent intent=new Intent();
 
@@ -204,19 +293,23 @@ public class HomeActivity extends Activity{
                     isFirstTime=false;
                     isPlaying=true;
                     isPause=false;
-                    previous();
+                   // previous();
+                    clickBtnPresenter.clickPrevious();
                     break;
                 case R.id.repeat_music:
                     if (repeatStatue == noneRepeat) {
-                        repeat_one();
+                       // repeat_one();
+                        clickBtnPresenter.clickRepeat_one();
                         rankBtn.setClickable(false);
                         repeatStatue = singleRepeat;
                     } else if (repeatStatue == singleRepeat) {
-                        repeat_all();
+                        //repeat_all();
+                        clickBtnPresenter.clickRepeat_all();
                         rankBtn.setClickable(false);
                         repeatStatue = allRepeat;
                     } else if (repeatStatue == allRepeat) {
-                        repeat_none();
+                        //repeat_none();
+                        clickBtnPresenter.clickRepeat_none();
                         rankBtn.setClickable(true);
                         repeatStatue = singleRepeat;
                     }
@@ -238,7 +331,8 @@ public class HomeActivity extends Activity{
                     break;
                 case R.id.play_music:
                     if (isFirstTime) {
-                        play();
+                        //play();
+                        clickBtnPresenter.clickPlay();
                         isFirstTime = false;
                         isPlaying = true;
                         isPause = false;
@@ -268,7 +362,8 @@ public class HomeActivity extends Activity{
                         rankBtn.setBackgroundResource(R.drawable.rank_music);
                         isNoneRank = false;
                         isRank = true;
-                        RankMusic();
+                       // RankMusic();
+                        clickBtnPresenter.clickRankMusic();
                         repeatBtn.setClickable(false);
                     } else if (isRank) {
                         rankBtn.setBackgroundResource(R.drawable.rank_music_none);
@@ -282,7 +377,8 @@ public class HomeActivity extends Activity{
                     isFirstTime = false;
                     isPlaying = true;
                     isPause = false;
-                    next();
+                   // next();
+                    clickBtnPresenter.clickNext();
                     break;
 
             }
@@ -290,7 +386,7 @@ public class HomeActivity extends Activity{
         }
     }
 
-    public void next() {
+  /*  public void next() {
         listPosition=listPosition+1;
         if(listPosition<= mp3Infos.size() - 1){
             Mp3Info mp3Info=mp3Infos.get(listPosition);
@@ -307,14 +403,15 @@ public class HomeActivity extends Activity{
         }
 
     }
+    */
 
-    public void RankMusic(){
+  /*  public void RankMusic(){
         Intent intent = new Intent(CTL_ACTION);
         intent.putExtra("control", 4);
         sendBroadcast(intent);
     }
-
-    public void play() {
+*/
+   /* public void play() {
         playBtn.setBackgroundResource(R.drawable.play_music);
         Mp3Info mp3Info = mp3Infos.get(listPosition);
         music_name.setText(mp3Info.getTitle());
@@ -326,25 +423,28 @@ public class HomeActivity extends Activity{
         intent.setPackage("com.example.localmusicplayer");
         startService(intent);
     }
-
+    */
+/*
     public void repeat_one() {
         Intent intent = new Intent(CTL_ACTION);
         intent.putExtra("control", 1);
         sendBroadcast(intent);
     }
-    public void repeat_all() {
+    */
+  /*  public void repeat_all() {
         Intent intent = new Intent(CTL_ACTION);
         intent.putExtra("control", 2);
         sendBroadcast(intent);
     }
-    public void repeat_none() {
+    */
+   /* public void repeat_none() {
         Intent intent = new Intent(CTL_ACTION);
         intent.putExtra("control", 3);
         sendBroadcast(intent);
     }
+*/
 
-
-
+/*
     public void previous(){
         listPosition=listPosition-1;
         if(listPosition>=0){
@@ -361,6 +461,7 @@ public class HomeActivity extends Activity{
         }
 
     }
+    */
 
     public class HomeReceiver extends BroadcastReceiver {
 
